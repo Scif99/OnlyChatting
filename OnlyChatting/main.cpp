@@ -4,14 +4,16 @@
 #include <cstdlib>
 #include <iostream>
 #include <thread>
-
+#include <limits>
 #include "tcp_server.h"
 
 
 
 constexpr unsigned short PORT{ 50001 };
 
+struct Message;
 void runTcpClient(unsigned short port);
+
 ////////////////////////////////////////////////////////////
 /// Entry point of application
 /// \return Application exit code
@@ -25,20 +27,27 @@ int main()
     std::cout << "Hello, welcome to the chat room.\n";
 
     // Client or server ?
-    char who;
+    std::string who;
     std::cout << "Do you want to be a server (s) or a client (c)? ";
     std::cin >> who;
-
+    while (who != "s" && who != "c")
+    {
+        std::cout << "Error: Invalid input\nDo you want to be a server(s) or a client(c) ? ";
+        std::cin >> who;
+    }
+ 
 
     // Test the TCP protocol
-    if (who == 's')
+    if (who == "s")
     {
         TcpServer server(port);
-        server.run();
+        server.run();   
 
     }
-    else
+    else 
+    {
         runTcpClient(port);
+    }
   
 
 

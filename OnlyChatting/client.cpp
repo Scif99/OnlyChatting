@@ -16,6 +16,7 @@
 
 
 
+
 void sendToServer(sf::TcpSocket& socket)
 {
     while (true)
@@ -56,7 +57,7 @@ void runTcpClient(unsigned short port)
 {
     // Ask for the server address
     sf::IpAddress server;
-    std::cout << "Type the address or name of the server to connect to: ";
+    std::cout << "\nType the address or name of the server to connect to: ";
     std::cin >> server;
     std::cin.ignore();
 
@@ -70,18 +71,17 @@ void runTcpClient(unsigned short port)
 
     // Connect to the server
     std::cout << "connecting...\n";
-    //if (socket.connect(server, port) == sf::Socket::Disconnected)
-    //{
-    //    std::cout << "Error: Server is currently full.";
-    //}
-
-
-    if (socket.connect(server, port) != sf::Socket::Done)
+    switch (socket.connect(server,port))
     {
-        std::cout << "Error: Failed to connect to server.\n";
-        return; //error - timeout
+    case sf::Socket::Done:
+        std::cout << "Connected to server\n";
+        break;
+
+    case sf::Socket::Disconnected:
+        std::cout << "Error: couldn't connect to server\n";
+        break;
     }
-    std::cout << "Connected to server\n";
+
 
     //We handle input and output simultaneously by using two threads.
     std::thread t{ sendToServer, std::ref(socket) };

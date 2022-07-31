@@ -15,7 +15,7 @@ void TcpServer::run()
 {
     //Start listening
     m_listener_.listen(m_port_);
-    std::cout << "Server is listening to port " << m_port_ << ", waiting for connections... " << std::endl;
+    std::cout << "\nServer is listening to port " << m_port_ << ", waiting for connections... " << std::endl;
     m_selector_.add(m_listener_);
 
     //Selector passively checks if any of its sockets have received data
@@ -41,32 +41,48 @@ void TcpServer::run()
 //
 void TcpServer::processRequest()
 {
-    if (m_clients_.size() < MAX_CLIENTS) //Ignore request if server is full
-    {
-        auto client = std::make_unique<sf::TcpSocket>(); //construct a socket to handle this client
-        if (m_listener_.accept(*client) == sf::Socket::Done)
-        {
 
+    auto client = std::make_unique<sf::TcpSocket>(); //construct a socket to handle this client
+    if (m_listener_.accept(*client) == sf::Socket::Done)
+    {
+        if (m_clients_.size() == MAX_CLIENTS)
+        {
+            sf::Packet packet;
+            std::string message{"Sorry, server is currently full"};
+            if (packet << message) //Extract from packet
+            {
+                client->send(packet); 
+            }
+            std::cout << "Client has attempted to connect from " << client->getRemoteAddress() << " but server is currently full\n";
+            client->disconnect();
+            
+
+        }
+        else
+        {
             std::cout << "Client connected from: " << client->getRemoteAddress() << std::endl;
             m_selector_.add(*client); //Add to the selector so that it we will be notified when it sends something
             m_clients_.push_back(std::move(client));
             std::cout << "Server now hosts " << m_clients_.size() << " clients\n";
         }
-        else
-        {
-            //Error, connection failed
-            std::cout << "Error: Connection failed\n";
-        }
+
     }
+    else
+    {
+        //Error, connection failed
+        std::cout << "Error: Connection failed\n";
+    }
+  
 }
 
 
 void TcpServer::testClients()
 {
-    //auto to_be_removed = std::end(m_clients_); //In case we need to remove any clients this iteration
+    auto to_be_removed = std::end(m_clients_); //In case we need to remove any clients this iteration
 
     for (auto it = std::begin(m_clients_); it != std::end(m_clients_);++it)
     {
+
         if (m_selector_.isReady(**it))
         {
             //One of the clients has sent some data
@@ -83,20 +99,20 @@ void TcpServer::testClients()
                     echoToClients(packet); //Inline?
                 }
             }
-            //else if (it->receive(packet) == sf::Socket::Disconnected) //If a client has disconnected
-            //{
-            //    //PROBLEM: CAnnot get username of client after it leaves!
-            //    std::cout << (*it)->m_username_ << " has disconnected from the server\n";
-            //    m_selector_.remove((*it)->m_socket_); //Remove socket associated with client from selector
-            //    (*it)->m_socket_.disconnect();
-            //    to_be_removed = it;
-            //    std::cout << "There are now " << m_clients_.size() - 1 << " users in the server\n";
+            else if ((*it)->receive(packet) == sf::Socket::Disconnected) //If a client has disconnected
+            {
+                //PROBLEM: CAnnot get username of client after it leaves!
+                std::cout << "A user has disconnected from the server\n";
+                m_selector_.remove(**it); //Remove socket associated with client from selector
+                (*it)->disconnect();
+                to_be_removed = it;
+                std::cout << "There are now " << m_clients_.size() - 1 << " users in the server\n";
 
-            //}
+            }
 
         }
 
     }
 
-    //if (to_be_removed != std::end(m_clients_)) { m_clients_.erase(to_be_removed); } //Remove the client that disconnected, if at al
+    if (to_be_removed != std::end(m_clients_)) { m_clients_.erase(to_be_removed); } //Remove the client that disconnected, if at al
 }
