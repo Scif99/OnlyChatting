@@ -19,9 +19,11 @@
 
 void sendToServer(sf::TcpSocket& socket)
 {
+
     while (true)
     {
         sf::Packet outgoing;
+        //sf::Packet outgoing;
         std::string out;
         std::getline(std::cin, out);
         outgoing << out;
@@ -57,29 +59,46 @@ void runTcpClient(unsigned short port)
 {
     // Ask for the server address
     sf::IpAddress server;
-    std::cout << "\nType the address or name of the server to connect to: ";
+    std::cout << "Type the address of the server to connect to: ";
     std::cin >> server;
-    std::cin.ignore();
 
-    std::cout << "Please enter a username: \n";
+    //VALIDATE WHETHER SERVER IS A CORRECT IP
+
+    std::cout << "Please enter a username: ";
     std::string name;
     std::cin >> name;
 
     // Create a socket for communicating with the server
     sf::TcpSocket socket;
-
-
-    // Connect to the server
     std::cout << "connecting...\n";
-    switch (socket.connect(server,port))
-    {
-    case sf::Socket::Done:
-        std::cout << "Connected to server\n";
-        break;
 
-    case sf::Socket::Disconnected:
+    if (socket.connect(server, port) != sf::Socket::Done)
+    {
         std::cout << "Error: couldn't connect to server\n";
-        break;
+    }
+
+    //Successfully connected
+    else
+    {
+        //Upon connecting, the server sends a packet that contains a flag that signifies
+        //whether the server is alread full. 
+        sf::Packet p;
+        if (socket.receive(p) == sf::Socket::Done) 
+        {
+            bool full;
+            std::string msg;
+            p >> full >> msg;
+            std::cout << msg<<'\n';
+            if (full)
+            {
+                socket.disconnect();
+                return;
+            }
+        }
+        else
+        {
+            std::cout << "Error: couldn't connect to server\n";
+        }
     }
 
 

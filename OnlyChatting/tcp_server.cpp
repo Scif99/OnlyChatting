@@ -38,26 +38,26 @@ void TcpServer::run()
     }
 }
 
-//
+//Handles an incoming request from a client
 void TcpServer::processRequest()
 {
 
     auto client = std::make_unique<sf::TcpSocket>(); //construct a socket to handle this client
     if (m_listener_.accept(*client) == sf::Socket::Done)
     {
-        if (m_clients_.size() == MAX_CLIENTS)
-        {
-            sf::Packet packet;
-            std::string message{"Sorry, server is currently full"};
-            if (packet << message) //Extract from packet
-            {
-                client->send(packet); 
-            }
-            std::cout << "Client has attempted to connect from " << client->getRemoteAddress() << " but server is currently full\n";
-            client->disconnect();
-            
 
+        bool full{ m_clients_.size() == MAX_CLIENTS };
+        std::string message = full ?  "Sorry, server is currently full\n"  : "Welcome to the server!\n";
+        sf::Packet packet;
+        packet << full<<message;
+        client->send(packet);
+
+        if (full) 
+        {
+            std::cout << "A client has attempted to connect from " << client->getRemoteAddress() << " but server is currently full\n";
+            client->disconnect();
         }
+
         else
         {
             std::cout << "Client connected from: " << client->getRemoteAddress() << std::endl;

@@ -18,7 +18,6 @@ public:
 		: m_port_{ port }
 	{
 		m_clients_.reserve(MAX_CLIENTS);
-	
 	}
 
 	//non-copyable
