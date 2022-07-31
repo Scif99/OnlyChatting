@@ -13,13 +13,14 @@
 
 
 
+struct Message;
+
 void sendToServer(sf::TcpSocket& socket)
 {
 
     while (true)
     {
         sf::Packet outgoing;
-        //sf::Packet outgoing;
         std::string out;
         std::getline(std::cin, out);
         outgoing << out;

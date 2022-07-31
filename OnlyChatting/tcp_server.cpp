@@ -17,14 +17,18 @@ void TcpServer::echoToClients(sf::Packet& packet)
 void TcpServer::run()
 {
     //Start listening
-    m_listener_.listen(m_port_);
+    if (m_listener_.listen(m_port_) != sf::Socket::Done)
+    {
+        std::cout << "Error: unable to listen on port " << m_port_ << '\n';
+    }
+
     std::cout << "\nServer is listening to port " << m_port_ << ", waiting for connections... " << std::endl;
     m_selector_.add(m_listener_);
 
-    //Selector passively checks if any of its sockets have received data
+    
     while (true)
     {
-        if (m_selector_.wait()) //check if any of the sockets are ready to recieve
+        if (m_selector_.wait()) //Selector passively checks if any of its sockets have received data
         {
             if (m_selector_.isReady(m_listener_)) 
             {
@@ -34,9 +38,8 @@ void TcpServer::run()
             else
             {
                 //A client is ready to receive some data
-                testClients();
+                ProcessClients();
             }
-
         }
     }
 }
@@ -44,11 +47,9 @@ void TcpServer::run()
 //Handles an incoming request from a client
 void TcpServer::processRequest()
 {
-
     auto client = std::make_unique<sf::TcpSocket>(); //construct a socket to handle this client
     if (m_listener_.accept(*client) == sf::Socket::Done)
     {
-
         const bool full{ m_clients_.size() == MAX_CLIENTS };
         std::string message = full ?  "Sorry, server is currently full\n"  : "Welcome to the server!\n";
         sf::Packet packet;
@@ -79,7 +80,7 @@ void TcpServer::processRequest()
 
 //Checks if any clients have receive data
 
-void TcpServer::testClients()
+void TcpServer::ProcessClients()
 {
     auto to_be_removed = std::end(m_clients_); //In case we need to remove any clients this iteration
 
@@ -101,6 +102,7 @@ void TcpServer::testClients()
                     std::cout << message <<'\n';
                     echoToClients(packet); //Inline?
                 }
+                else { std::cout << "Error reading message\n"; }
             }
             else if ((*it)->receive(packet) == sf::Socket::Disconnected) //If a client has disconnected
             {

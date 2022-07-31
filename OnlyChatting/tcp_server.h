@@ -30,12 +30,14 @@ public:
 
 	void run();
 	void processRequest(); //Process an incoming request from a client
-	void testClients();
+	void ProcessClients();
 	//void updateClientList(); //Handles deleting sockets for any disconnected clients
-	void echoToClients(sf::Packet& packet);// { std::for_each(std::begin(m_clients_), std::end(m_clients_), [](Client) {std::mem_fn(&sf::TcpSocket::send)} }
+	void echoToClients(sf::Packet& packet);
+
 private:
 	unsigned short m_port_;
 	sf::SocketSelector m_selector_;
 	std::vector<std::unique_ptr<sf::TcpSocket>> m_clients_; //The extra element is so that, when server is full, we can send a packet to client to say server is full.
 	sf::TcpListener m_listener_;
+	//Circular buffer to store most recent messages
 };
