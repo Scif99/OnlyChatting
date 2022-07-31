@@ -7,7 +7,10 @@ void TcpServer::echoToClients(sf::Packet& packet)
     
     for (auto& clnt : m_clients_)
     {
-        clnt->send(packet);
+        if (clnt->send(packet) != sf::Socket::Done)
+        {
+            std::cout << "Message failed to send to " << clnt->getRemoteAddress();
+        }
     }
 }
 
@@ -46,7 +49,7 @@ void TcpServer::processRequest()
     if (m_listener_.accept(*client) == sf::Socket::Done)
     {
 
-        bool full{ m_clients_.size() == MAX_CLIENTS };
+        const bool full{ m_clients_.size() == MAX_CLIENTS };
         std::string message = full ?  "Sorry, server is currently full\n"  : "Welcome to the server!\n";
         sf::Packet packet;
         packet << full<<message;
@@ -65,7 +68,6 @@ void TcpServer::processRequest()
             m_clients_.push_back(std::move(client));
             std::cout << "Server now hosts " << m_clients_.size() << " clients\n";
         }
-
     }
     else
     {
@@ -75,6 +77,7 @@ void TcpServer::processRequest()
   
 }
 
+//Checks if any clients have receive data
 
 void TcpServer::testClients()
 {
@@ -95,7 +98,7 @@ void TcpServer::testClients()
 
                 if (packet >> message) //Extract from packet
                 {
-                    std::cout << message << '\n'; //Send 
+                    std::cout << message <<'\n';
                     echoToClients(packet); //Inline?
                 }
             }
