@@ -14,36 +14,35 @@
 #include <string>
 #include <thread>
 
-#include "message.h"
 
 
-void sendToServer(Client& client)
+void sendToServer(sf::TcpSocket& socket)
 {
     while (true)
     {
         sf::Packet outgoing;
         std::string out;
         std::getline(std::cin, out);
-        outgoing << client.m_username_<< out;
-        client.m_socket_.send(outgoing);
+        outgoing << out;
+        socket.send(outgoing);
     }
 
 }
 
-void receiveFromServer(Client& client)
+void receiveFromServer(sf::TcpSocket& socket)
 {
     while (true)
     {
         // Receive a packet from the server
         sf::Packet incoming;
-        if (client.m_socket_.receive(incoming) == sf::Socket::Done)
+        if (socket.receive(incoming) == sf::Socket::Done)
         {
             //Extract from packet
-            std::string username;
+            //std::string username;
             std::string message;
-            if (incoming >>username >> message) //Extract from packet
+            if (incoming >> message) //Extract from packet
             {
-                std::cout << username << ": " << message << '\n';
+                std::cout  << message << '\n';
             }
         }
     }
@@ -68,27 +67,24 @@ void runTcpClient(unsigned short port)
     // Create a socket for communicating with the server
     sf::TcpSocket socket;
 
-    Client client;
-    client.m_username_ = name;
 
     // Connect to the server
     std::cout << "connecting...\n";
-    if (client.m_socket_.connect(server, port) == sf::Socket::Disconnected)
-    {
-        std::cout << "Error: Server is currently full.";
-    }
+    //if (socket.connect(server, port) == sf::Socket::Disconnected)
+    //{
+    //    std::cout << "Error: Server is currently full.";
+    //}
 
-    sf::Time t1 = sf::seconds(5.f);
-    if (client.m_socket_.connect(server, port, t1) != sf::Socket::Done)
+
+    if (socket.connect(server, port) != sf::Socket::Done)
     {
-        std::cout << "Error: timeout.\n";
+        std::cout << "Error: Failed to connect to server.\n";
         return; //error - timeout
     }
-    client.m_socket_.connect(server, port,t1);
-    std::cout  << client.m_username_<<" has connected to the server \n";
+    std::cout << "Connected to server\n";
 
     //We handle input and output simultaneously by using two threads.
-    std::thread t{ sendToServer, std::ref(client) };
-    receiveFromServer(client);
+    std::thread t{ sendToServer, std::ref(socket) };
+    receiveFromServer(socket);
 
 }

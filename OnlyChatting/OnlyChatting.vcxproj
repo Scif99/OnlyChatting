@@ -155,7 +155,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="message.h" />
     <ClInclude Include="tcp_server.h" />
   </ItemGroup>
   <ItemGroup>

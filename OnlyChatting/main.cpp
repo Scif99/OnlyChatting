@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <thread>
+
 #include "tcp_server.h"
 
 
@@ -11,15 +12,10 @@
 constexpr unsigned short PORT{ 50001 };
 
 void runTcpClient(unsigned short port);
-
-
 ////////////////////////////////////////////////////////////
 /// Entry point of application
-///
 /// \return Application exit code
-///
 ////////////////////////////////////////////////////////////
-
 
 int main()
 {
@@ -51,5 +47,5 @@ int main()
     std::cin.ignore(10000, '\n');
     std::cin.ignore(10000, '\n');
 
-    return EXIT_SUCCESS;
+    return 0;
 }
