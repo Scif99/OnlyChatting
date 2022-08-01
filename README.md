@@ -1,4 +1,4 @@
-OnlyChatting
+A console-based server made using TCP.
 
 TO-DO
 - Use the message class to that clients have an associated username
